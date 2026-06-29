@@ -1650,3 +1650,7 @@ body.lang-ml .filter-label {
   color: #fff !important;
   border-color: var(--ink) !important;
 }
+
+#heatmap-toggle {
+  display: none !important;
+}
