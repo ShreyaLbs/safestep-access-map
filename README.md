@@ -95,11 +95,11 @@ The "Confirm this issue" button is a simplified stand-in for community verificat
 
 ---
 
-## Deploy in One Click
+## Deployed link
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy)
+[![Deployed link:](https://shreyalbs.github.io/safestep-access-map/)
 
-Just drag-and-drop the project folder onto [netlify.com/drop](https://app.netlify.com/drop) — works immediately.
+
 
 ---
 
