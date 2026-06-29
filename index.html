@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SafeStep — Access & Safety Map</title>
+    <meta
+      name="description"
+      content="A crowdsourced map of physical barriers and safety issues — broken ramps, poor lighting, unsafe crossings, and more. Community-verified and auto-prioritized by urgency score. Export for civic action."
+    />
+    
+    <!-- PWA Metadata -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#f0e9dc" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="SafeStep — Access & Safety Map" />
+    <meta
+      property="og:description"
+      content="Pin accessibility barriers and safety issues. Auto-ranked by urgency. Exportable for city and campus action."
+    />
+    <meta property="og:type" content="website" />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <header id="header" role="banner">
+      <div id="brand">
+        <span id="brand-name" aria-label="SafeStep">SafeStep</span>
+        <span id="brand-sub" aria-hidden="true" data-i18n="brand_sub">Access &amp; Safety Map</span>
+      </div>
+      <div id="header-actions">
+        <button
+          id="btn-add-report-header"
+          class="btn btn-primary"
+          aria-label="Report a new accessibility or safety issue"
+          data-i18n-aria="btn_report_aria"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span data-i18n="btn_report">Report an issue</span>
+        </button>
+        <button
+          id="btn-download-header"
+          class="btn btn-secondary"
+          aria-label="Download all reports as a CSV file"
+          data-i18n-aria="btn_download_aria"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="btn_download">Download report</span>
+        </button>
+        <!-- Sign in preview -->
+        <button
+          id="btn-signin"
+          class="btn btn-ghost"
+          aria-label="Sign in (UI preview only)"
+          title="Sign in — UI preview"
+        >
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" id="btn-signin-icon">
+            <circle cx="6.5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M1 12c0-3 2.5-4.5 5.5-4.5S12 9 12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span class="btn-signin-label" id="btn-signin-label">Sign in</span>
+        </button>
+        <!-- Language toggle -->
+        <button
+          id="btn-lang"
+          class="btn btn-ghost"
+          aria-label="Switch to Malayalam"
+          title="Toggle language"
+        >EN / മ</button>
+        <span style="font-size:0.72rem; color:var(--ink-muted); display:flex; align-items:center; gap:0.25rem;" class="map-hint-inline">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M6 8V6M6 4h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span data-i18n="map_hint">Click map to pin an issue</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- ── Filter Bar ────────────────────────────────────────────────── -->
+    <div id="filter-bar" role="search" aria-label="Filter reports by severity and issue type">
+      <div class="filter-group" aria-label="Filter by severity">
+        <span class="filter-label" data-i18n="filter_severity">Severity</span>
+        <div class="filter-pills" role="group" aria-label="Severity filter">
+          <button class="filter-pill active" data-filter="severity" data-value="all" aria-pressed="true" data-i18n="filter_all">All</button>
+          <button class="filter-pill" data-filter="severity" data-value="high" aria-pressed="false">
+            <span class="sev-dot sev-dot-high" aria-hidden="true"></span><span data-i18n="sev_high">High</span>
+          </button>
+          <button class="filter-pill" data-filter="severity" data-value="medium" aria-pressed="false">
+            <span class="sev-dot sev-dot-medium" aria-hidden="true"></span><span data-i18n="sev_medium">Medium</span>
+          </button>
+          <button class="filter-pill" data-filter="severity" data-value="low" aria-pressed="false">
+            <span class="sev-dot sev-dot-low" aria-hidden="true"></span><span data-i18n="sev_low">Low</span>
+          </button>
+          <button class="filter-pill" data-filter="severity" data-value="resolved" aria-pressed="false">
+            <span class="sev-dot sev-dot-resolved" aria-hidden="true"></span><span data-i18n="sev_resolved">Resolved</span>
+          </button>
+        </div>
+      </div>
+      <div class="filter-divider" aria-hidden="true"></div>
+      <div class="filter-group" aria-label="Filter by issue type">
+        <span class="filter-label" data-i18n="filter_type">Type</span>
+        <div class="filter-pills" id="type-filter-pills" role="group" aria-label="Issue type filter">
+          <button class="filter-pill active" data-filter="type" data-value="all" aria-pressed="true" data-i18n="filter_all_types">All types</button>
+          <!-- additional type pills injected by JS from ISSUE_TYPES -->
+        </div>
+      </div>
+      <button id="filter-clear" class="filter-clear" aria-label="Clear all filters" hidden data-i18n="filter_clear">
+        ✕ Clear filters
+      </button>
+    </div>
+
+    <!-- ── App Body ────────────────────────────────────────────────── -->
+    <div id="app-body">
+
+      <!-- Map -->
+      <main id="map-wrap" aria-label="Accessibility and safety issue map">
+        <!-- Loading skeleton -->
+        <div id="map-loader" role="status" aria-live="polite">
+          <div class="loader-spinner" aria-hidden="true"></div>
+          <p class="loader-text">Loading map tiles…</p>
+        </div>
+
+        <!-- Heatmap toggle — absolute overlay, top-left of map -->
+        <button
+          id="heatmap-toggle"
+          class="map-overlay-btn"
+          aria-pressed="false"
+          aria-label="Enable heatmap view"
+          title="Heatmap view"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="7.5" cy="7.5" r="3.5" fill="currentColor" opacity="0.35"/>
+            <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>
+          </svg>
+          Heatmap
+        </button>
+
+        <div id="map" aria-label="Interactive map showing reported accessibility and safety issues"></div>
+
+        <!-- Click hint -->
+        <div id="map-hint" aria-hidden="true">Click anywhere to report an issue at that location</div>
+      </main>
+
+      <!-- Side Panel -->
+      <aside id="side-panel" aria-label="Issue statistics and urgency-ranked list">
+
+        <!-- Stats strip -->
+        <div id="stats-strip" role="region" aria-label="Summary statistics">
+          <div class="stat-item">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label" data-i18n="stat_total">Total</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value high" id="stat-high">0</div>
+            <div class="stat-label" data-i18n="sev_high">High</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value medium" id="stat-medium">0</div>
+            <div class="stat-label" data-i18n="sev_medium">Medium</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value low" id="stat-resolved">0</div>
+            <div class="stat-label" data-i18n="sev_resolved">Resolved</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value low" id="stat-impact">0</div>
+            <div class="stat-label" data-i18n="stat_impact">Community impact</div>
+          </div>
+        </div>
+
+        <!-- Urgency list -->
+        <div id="urgency-list-wrap" role="region" aria-label="Urgency-ranked issue list">
+          <div class="urgency-list-header">
+            <span class="urgency-list-title" data-i18n="panel_priority">Priority Ranking</span>
+            <button
+              class="info-btn"
+              id="formula-info-btn"
+              aria-label="Show urgency score formula"
+              aria-expanded="false"
+            >i</button>
+          </div>
+          <div id="urgency-items" aria-live="polite" aria-atomic="false">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Export (always-visible strip at bottom of panel) -->
+        <div id="export-section">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+            <div>
+              <div class="export-label" data-i18n="export_label">Civic export</div>
+              <p style="font-size:0.68rem; color:var(--ink-faint); line-height:1.4; margin-top:0.1rem;" data-i18n="export_desc">
+                All reports, sorted by urgency — ready for a campus or city office.
+              </p>
+            </div>
+            <button
+              id="btn-download"
+              class="btn btn-secondary"
+              style="flex-shrink:0;"
+              aria-label="Download all reports as a CSV file"
+              data-i18n-aria="btn_download_aria"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-i18n="btn_download">Download report</span>
+            </button>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+
+    <!-- ── Add Report Modal ───────────────────────────────────────── -->
+    <div
+      id="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div id="modal">
+        <div id="modal-header">
+          <h2 id="modal-title" data-i18n="modal_title">Report an issue</h2>
+          <button
+            id="modal-close"
+            aria-label="Close report dialog"
+          >✕</button>
+        </div>
+        <div id="modal-body">
+          <div class="form-coords">
+            📍 <span data-i18n="modal_reporting_at">Reporting at:</span> <span id="form-lat">—</span>°N, <span id="form-lng">—</span>°E
+          </div>
+
+          <form id="report-form" novalidate>
+            <div class="form-group">
+              <label for="form-type" data-i18n="form_type_label">Issue type</label>
+              <select id="form-type" name="type" required aria-required="true">
+                <!-- populated by JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="form-desc"><span data-i18n="form_desc_label">Description</span> <span aria-hidden="true">*</span></label>
+              <textarea
+                id="form-desc"
+                name="description"
+                placeholder="Describe what you observed — be as specific as possible (e.g. 'ramp is cracked and rises 8 cm above the footpath')."
+                data-i18n-placeholder="form_desc_placeholder"
+                required
+                aria-required="true"
+                maxlength="500"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="form-severity" data-i18n="form_sev_label">Severity</label>
+              <select id="form-severity" name="severity" required aria-required="true">
+                <option value="low" data-i18n="sev_low_opt">Low — an inconvenience, but manageable</option>
+                <option value="medium" selected data-i18n="sev_medium_opt">Medium — significantly limits access</option>
+                <option value="high" data-i18n="sev_high_opt">High — blocks access or poses safety risk</option>
+              </select>
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-ghost"
+                onclick="closeModal()"
+                data-i18n="btn_cancel"
+              >Cancel</button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                  <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span data-i18n="btn_add_report">Add report</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Formula Tooltip ───────────────────────────────────────── -->
+    <div
+      id="formula-tooltip"
+      class="formula-tooltip"
+      role="tooltip"
+      aria-label="Urgency score formula explanation"
+    >
+      <h4>Urgency Score Formula</h4>
+      <div class="formula-code">
+        urgency = (severityWeight × confirmations) + recencyBoost − resolvedPenalty
+      </div>
+      <ul>
+        <li><strong>severityWeight:</strong> High = 3 · Medium = 2 · Low = 1</li>
+        <li><strong>recencyBoost:</strong> max 15 pts, halves every 7 days</li>
+        <li><strong>resolvedPenalty:</strong> −100 (pushes resolved items to bottom)</li>
+      </ul>
+      <p>
+        This formula auto-ranks issues so the most severe, most community-confirmed, and most recent reports always surface to the top — giving campus and civic teams a clear action order.
+      </p>
+    </div>
+
+    <!-- ── Toast Notification ────────────────────────────────────── -->
+    <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ── High-Severity Notification Banner ─────────────────────── -->
+    <div id="notification-banner" role="status" aria-live="polite" aria-atomic="true">
+      <div class="notif-icon">⚠️</div>
+      <div class="notif-text">New high-severity issue reported nearby.</div>
+    </div>
+
+    <!-- ── Login Preview Modal ──────────────────────────────────── -->
+    <div id="login-modal-overlay" class="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-modal-title" hidden>
+      <div class="login-modal" id="login-modal-box">
+        <!-- Header -->
+        <div class="login-modal-header">
+          <div class="login-brand">
+            <span class="login-brand-name">SafeStep</span>
+            <span class="login-badge">Preview</span>
+          </div>
+          <button id="btn-login-close" class="login-close" aria-label="Close login dialog">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div class="login-modal-body" id="login-form-area">
+          <h2 id="login-modal-title" class="login-title">Sign in to SafeStep</h2>
+          <p class="login-subtitle">Community-verified access reporting</p>
+
+          <div class="login-field">
+            <label class="login-label" for="login-email">Email address</label>
+            <input
+              id="login-email"
+              class="login-input"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="login-field">
+            <label class="login-label" for="login-password">Password</label>
+            <input
+              id="login-password"
+              class="login-input"
+              type="password"
+              placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <p id="login-error" class="login-error" hidden aria-live="polite"></p>
+
+          <button id="btn-login-submit" class="btn btn-primary login-submit-btn">
+            Sign in
+          </button>
+
+          <p class="login-forgot"><a href="#" onclick="return false">Forgot password?</a></p>
+        </div>
+
+        <!-- Success state (shown on correct credentials) -->
+        <div class="login-modal-body login-success-area" id="login-success-area" hidden>
+          <div class="login-note-icon" aria-hidden="true">✅</div>
+          <h2 class="login-title" style="color:var(--low)">Signed in!</h2>
+          <p class="login-note-text">Signed in as <strong>Demo User</strong>. Closing…</p>
+        </div>
+
+        <!-- Post-signin note (shown after clicking Sign in) -->
+        <div class="login-modal-body login-note-area" id="login-note-area" hidden>
+          <div class="login-note-icon" aria-hidden="true">🔒</div>
+          <h2 class="login-title">UI Preview Only</h2>
+          <p class="login-note-text">
+            Login is a <strong>UI preview</strong> for this prototype — a future version will support
+            verified accounts to reduce spam and enable personalized tracking.
+          </p>
+          <p class="login-note-text" style="margin-top:0.5rem; font-size:0.8rem; color:var(--ink-muted);">
+            No credentials were validated. All app features remain fully accessible without signing in.
+          </p>
+          <button id="btn-login-ok" class="btn btn-primary login-submit-btn" style="margin-top:1.5rem;">Got it</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Scripts ───────────────────────────────────────────────── -->
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+
+    <!-- Leaflet.heat — heatmap plugin (no build step) -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+    <!-- Seed data (must load before app.js) -->
+    <script src="data/seed-reports.js"></script>
+
+    <!-- App logic -->
+    <script src="app.js"></script>
+
+    <!-- Register Service Worker for PWA installability -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.error('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
