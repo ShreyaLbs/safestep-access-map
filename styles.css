@@ -917,6 +917,34 @@ body {
   justify-content: flex-end;
 }
 
+/* ─── Photo Upload & Display ─────────────────────────────────────── */
+.photo-preview {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  border: 1.5px solid var(--border);
+}
+
+.popup-photo,
+.urgency-item-photo {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  border: 1.5px solid var(--border);
+}
+.popup-photo {
+  margin-bottom: 0.5rem;
+}
+.urgency-item-photo {
+  margin-top: 0.75rem;
+}
+
 /* ─── Leaflet Popup Customization ────────────────────────────────── */
 .leaflet-popup-content-wrapper {
   background: var(--panel-bg-elevated) !important;
@@ -1653,4 +1681,202 @@ body.lang-ml .filter-label {
 
 #heatmap-toggle {
   display: none !important;
+}
+
+/* ─── Route Planner Panel ────────────────────────────────────────── */
+.route-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background: var(--panel-bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 320px;
+  padding: 1rem;
+  font-family: var(--font-body);
+}
+
+.route-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.route-panel-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.route-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.route-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.route-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--ink-faint);
+}
+
+.start-dot {
+  background-color: #27ae60;
+}
+
+.end-dot {
+  background-color: #c0392b;
+}
+
+.btn-route-select {
+  flex-grow: 1;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-route-select:hover {
+  border-color: var(--accent);
+}
+
+.btn-route-select.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-focus);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.btn-route-select.filled {
+  color: var(--ink);
+  font-weight: 500;
+  background-color: var(--map-paper);
+}
+
+.route-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.route-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+}
+
+.route-card.accessible-route {
+  border-width: 2px;
+  border-color: var(--accent);
+}
+
+.route-card-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recommended-badge {
+  font-size: 0.65rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.route-stats {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  margin-top: 4px;
+}
+
+.route-barriers {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 6px;
+  color: var(--high);
+}
+.route-card.accessible-route .route-barriers {
+  color: var(--accent);
+}
+
+.route-error {
+  color: var(--high);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  background: var(--high-bg);
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--high-border);
+}
+
+/* Route Map Markers */
+.route-marker-icon {
+  background: #fff;
+  border: 3px solid;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pulse animation for barriers on the route */
+@keyframes barrierPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(192, 57, 43, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(192, 57, 43, 0);
+  }
+}
+
+.barrier-pulse {
+  animation: barrierPulse 1.5s infinite;
+  border-radius: 50%;
+  z-index: 1000 !important;
+}
+
+/* Tooltip labels for Start / Destination markers */
+.route-tooltip {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+.route-tooltip::before {
+  border-top-color: var(--ink) !important;
 }

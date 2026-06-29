@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SafeStep — Seed Reports
  * These are hardcoded sample reports. They render on every page load on every
  * device with zero setup — the map is never empty for a cold open.

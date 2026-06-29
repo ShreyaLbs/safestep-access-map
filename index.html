@@ -43,6 +43,17 @@
       </div>
       <div id="header-actions">
         <button
+          id="btn-plan-route-header"
+          class="btn btn-secondary"
+          aria-label="Plan an accessible route"
+          data-i18n-aria="btn_route_aria"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1L1 7L7 13L13 7L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="btn_route">Plan Route</span>
+        </button>
+        <button
           id="btn-add-report-header"
           class="btn btn-primary"
           aria-label="Report a new accessibility or safety issue"
@@ -136,6 +147,42 @@
         <div id="map-loader" role="status" aria-live="polite">
           <div class="loader-spinner" aria-hidden="true"></div>
           <p class="loader-text">Loading map tiles…</p>
+        </div>
+
+        <!-- Route Planner Panel -->
+        <div id="route-panel" class="route-panel" hidden aria-label="Route Planner">
+          <div class="route-panel-header">
+            <h3 data-i18n="route_title">Plan Accessible Route</h3>
+            <button id="btn-close-route" class="btn-icon" aria-label="Close route planner">✕</button>
+          </div>
+          <div class="route-inputs">
+            <div class="route-input-group">
+              <span class="route-dot start-dot"></span>
+              <button id="btn-set-start" class="btn-route-select" data-i18n="route_set_start">Click map to set Start</button>
+            </div>
+            <div class="route-input-group">
+              <span class="route-dot end-dot"></span>
+              <button id="btn-set-end" class="btn-route-select" data-i18n="route_set_end">Click map to set Destination</button>
+            </div>
+          </div>
+          <div id="route-error" class="route-error" hidden></div>
+          <div id="route-results" class="route-results" hidden>
+            <div class="route-card default-route">
+              <div class="route-card-title">Default Route</div>
+              <div class="route-stats">
+                <span id="route-default-dist">—</span> • <span id="route-default-time">—</span>
+              </div>
+              <div class="route-barriers" id="route-default-barriers">Barriers crossed: 0</div>
+            </div>
+            <div class="route-card accessible-route">
+              <div class="route-card-title">Accessible Route <span class="recommended-badge" id="route-recommended-badge" hidden>Recommended</span></div>
+              <div class="route-stats">
+                <span id="route-access-dist">—</span> • <span id="route-access-time">—</span>
+              </div>
+              <div class="route-barriers" id="route-access-barriers">Barriers crossed: 0</div>
+            </div>
+          </div>
+          <button id="btn-clear-route" class="btn btn-ghost btn-full" hidden data-i18n="route_clear">Clear Route</button>
         </div>
 
         <!-- Heatmap toggle — absolute overlay, top-left of map -->
@@ -269,6 +316,12 @@
                 aria-required="true"
                 maxlength="500"
               ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="form-photo"><span data-i18n="form_photo_label">Optional Photo</span></label>
+              <input type="file" id="form-photo" name="photo" accept="image/*" capture="environment" />
+              <img id="form-photo-preview" class="photo-preview" src="" alt="Selected photo preview" hidden />
             </div>
 
             <div class="form-group">
@@ -414,10 +467,10 @@
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
     <!-- Seed data (must load before app.js) -->
-    <script src="data/seed-reports.js"></script>
+    <script src="data/seed-reports.js" charset="utf-8"></script>
 
     <!-- App logic -->
-    <script src="app.js"></script>
+    <script src="app.js" charset="utf-8"></script>
 
     <!-- Register Service Worker for PWA installability -->
     <script>
